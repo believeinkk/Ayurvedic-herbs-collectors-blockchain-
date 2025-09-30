@@ -1,0 +1,90 @@
+{% extends 'traceability/base.html' %}
+{% load static %}
+
+{% block title %}QR Scan Result - Ayurvedic Herb Traceability{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-qr-code-scan"></i>
+                    QR Code Scanned Successfully
+                </h4>
+            </div>
+            <div class="card-body text-center p-5">
+                <div class="display-1 text-success mb-4">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <h2 class="mb-3">Batch {{ batch_id }} Found!</h2>
+                <p class="lead text-muted mb-4">
+                    You've successfully scanned a QR code for an ayurvedic herb product. 
+                    View the complete traceability information below.
+                </p>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'batch_detail' batch_id %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-eye"></i> View Traceability Details
+                    </a>
+                    <a href="{% url 'consumer_portal' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Scan Another Code
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card border-0 card-hover h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-geo-alt display-6 text-primary mb-3"></i>
+                            <h6>Track Origin</h6>
+                            <p class="small text-muted">See exactly where your herbs were harvested</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card border-0 card-hover h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-gear display-6 text-warning mb-3"></i>
+                            <h6>Processing History</h6>
+                            <p class="small text-muted">Complete timeline of processing steps</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card border-0 card-hover h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-shield-check display-6 text-success mb-3"></i>
+                            <h6>Quality Verified</h6>
+                            <p class="small text-muted">Lab-tested for purity and authenticity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-redirect to batch detail after 3 seconds
+setTimeout(function() {
+    window.location.href = "{% url 'batch_detail' batch_id %}";
+}, 3000);
+
+// Show countdown
+let countdown = 3;
+const countdownInterval = setInterval(function() {
+    countdown--;
+    if (countdown <= 0) {
+        clearInterval(countdownInterval);
+    }
+}, 1000);
+</script>
+{% endblock %}

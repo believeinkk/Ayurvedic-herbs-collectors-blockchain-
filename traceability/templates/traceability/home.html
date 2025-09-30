@@ -1,0 +1,187 @@
+{% extends 'traceability/base.html' %}
+
+{% block title %}Dashboard - Ayurvedic Herb Traceability{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-4">
+            <i class="bi bi-graph-up text-success"></i>
+            Dashboard
+        </h1>
+        <p class="lead text-muted">Monitor your ayurvedic herb supply chain from collection to consumer</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-5">
+    <div class="col-md-3 mb-3">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="herb-icon">
+                    <i class="bi bi-leaf"></i>
+                </div>
+                <h3 class="text-success">{{ total_collections }}</h3>
+                <p class="text-muted mb-0">Total Collections</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="herb-icon">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <h3 class="text-warning">{{ active_batches }}</h3>
+                <p class="text-muted mb-0">Active Batches</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="herb-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <h3 class="text-success">{{ completed_batches }}</h3>
+                <p class="text-muted mb-0">Completed Batches</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card card-hover border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="herb-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h3 class="text-info">{{ total_collectors }}</h3>
+                <p class="text-muted mb-0">Registered Collectors</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Collection Events Map -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-geo-alt text-success"></i>
+                    Collection Events Map
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="collectionsMap" class="map-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock text-success"></i>
+                    Recent Collections
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for collection in recent_collections %}
+                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2">
+                            <i class="bi bi-leaf text-success"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">{{ collection.species.get_name_display }}</h6>
+                        <p class="mb-1 text-muted small">
+                            by {{ collection.collector.name }} • {{ collection.quantity_kg }}kg
+                        </p>
+                        <small class="text-muted">{{ collection.harvest_date|date:"M d, Y" }}</small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-success status-badge">
+                            Grade {{ collection.quality_grade }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No recent collections</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-box text-success"></i>
+                    Recent Batches
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for batch in recent_batches %}
+                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2">
+                            <i class="bi bi-box text-info"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">Batch {{ batch.batch_id }}</h6>
+                        <p class="mb-1 text-muted small">{{ batch.processing_facility }}</p>
+                        <small class="text-muted">{{ batch.start_date|date:"M d, Y" }}</small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-{% if batch.status == 'completed' %}success{% elif batch.status == 'processing' %}warning{% else %}secondary{% endif %} status-badge">
+                            {{ batch.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No recent batches</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize collections map
+document.addEventListener('DOMContentLoaded', function() {
+    const map = L.map('collectionsMap').setView([20.5937, 78.9629], 5);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    fetch('/api/collections/map_data/')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(event => {
+                const marker = L.marker([event.lat, event.lng])
+                    .bindPopup(`
+                        <div class="p-2">
+                            <h6><i class="bi bi-leaf text-success"></i> ${event.species}</h6>
+                            <p class="mb-1"><strong>Collector:</strong> ${event.collector}</p>
+                            <p class="mb-1"><strong>Quantity:</strong> ${event.quantity}kg</p>
+                            <p class="mb-1"><strong>Grade:</strong> ${event.grade}</p>
+                            <p class="mb-0"><strong>Date:</strong> ${event.harvest_date}</p>
+                        </div>
+                    `)
+                    .addTo(map);
+            });
+        });
+});
+</script>
+{% endblock %}

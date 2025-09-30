@@ -1,0 +1,139 @@
+{% extends 'traceability/base.html' %}
+
+{% block title %}Processing Form{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Record Processing Step
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="batch_id" class="form-label">Batch ID *</label>
+                            <input type="text" class="form-control" id="batch_id" name="batch_id" placeholder="e.g., ASH-2024-001" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="processing_facility" class="form-label">Processing Facility *</label>
+                            <input type="text" class="form-control" id="processing_facility" name="processing_facility" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="step_type" class="form-label">Processing Step *</label>
+                            <select class="form-select" id="step_type" name="step_type" required>
+                                <option value="">Select step...</option>
+                                {% for value, display in step_types %}
+                                <option value="{{ value }}">{{ display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="operator_name" class="form-label">Operator Name *</label>
+                            <input type="text" class="form-control" id="operator_name" name="operator_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="temperature" class="form-label">Temperature (°C)</label>
+                            <input type="number" step="0.1" class="form-control" id="temperature" name="temperature">
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="humidity" class="form-label">Humidity (%)</label>
+                            <input type="number" step="0.1" class="form-control" id="humidity" name="humidity">
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="duration_hours" class="form-label">Duration (hours)</label>
+                            <input type="number" step="0.1" class="form-control" id="duration_hours" name="duration_hours">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="batch_size_kg" class="form-label">Batch Size (kg)</label>
+                            <input type="number" step="0.1" class="form-control" id="batch_size_kg" name="batch_size_kg">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="equipment_used" class="form-label">Equipment Used</label>
+                            <input type="text" class="form-control" id="equipment_used" name="equipment_used">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="collection_events" class="form-label">Collection Events (for new batch)</label>
+                        <select class="form-select" id="collection_events" name="collection_events" multiple>
+                            {% for event in collection_events %}
+                            <option value="{{ event.event_id }}">
+                                {{ event.species.get_name_display }} - {{ event.collector.name }} - {{ event.harvest_date }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg text-dark">
+                            <i class="bi bi-plus-circle"></i> Record Processing Step
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">Active Batches</h6>
+            </div>
+            <div class="card-body">
+                {% for batch in batches %}
+                <div class="mb-2 p-2 bg-light rounded">
+                    <small><strong>{{ batch.batch_id }}</strong></small><br>
+                    <small class="text-muted">{{ batch.processing_facility }}</small>
+                </div>
+                {% empty %}
+                <p class="text-muted small">No active batches</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    var forms = document.getElementsByClassName('needs-validation');
+    Array.prototype.filter.call(forms, function(form) {
+        form.addEventListener('submit', function(event) {
+            if (form.checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
+{% endblock %}

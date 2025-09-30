@@ -1,0 +1,357 @@
+{% extends 'traceability/base.html' %}
+
+{% block title %}Batch {{ batch.batch_id }} - Traceability Details{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'consumer_portal' %}">Consumer Portal</a></li>
+                <li class="breadcrumb-item active">Batch {{ batch.batch_id }}</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-5">
+                    <i class="bi bi-box text-success"></i>
+                    Batch {{ batch.batch_id }}
+                </h1>
+                <p class="lead text-muted">Complete traceability information</p>
+            </div>
+            <div>
+                <span class="badge bg-{% if batch.status == 'completed' %}success{% elif batch.status == 'processing' %}warning{% else %}secondary{% endif %} status-badge fs-6">
+                    {{ batch.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Overview -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Batch Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Processing Facility:</strong> {{ batch.processing_facility }}</p>
+                        <p><strong>Batch Size:</strong> {{ batch.batch_size_kg }} kg</p>
+                        <p><strong>Start Date:</strong> {{ batch.start_date|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>End Date:</strong> {{ batch.end_date|date:"M d, Y H:i"|default:"In progress" }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{% if batch.status == 'completed' %}success{% elif batch.status == 'processing' %}warning{% else %}secondary{% endif %}">
+                                {{ batch.get_status_display }}
+                            </span>
+                        </p>
+                        {% if batch.qr_code %}
+                        <p><strong>QR Code:</strong> 
+                            <img src="{{ batch.qr_code.url }}" alt="QR Code" class="img-thumbnail" style="max-width: 100px;">
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up text-success"></i>
+                    Processing Progress
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3" style="height: 20px;">
+                    {% if batch.status == 'completed' %}
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%">100%</div>
+                    {% elif batch.status == 'quality_testing' %}
+                    <div class="progress-bar bg-info" role="progressbar" style="width: 80%">80%</div>
+                    {% elif batch.status == 'processing' %}
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: 50%">50%</div>
+                    {% else %}
+                    <div class="progress-bar bg-secondary" role="progressbar" style="width: 20%">20%</div>
+                    {% endif %}
+                </div>
+                <small class="text-muted">
+                    {% if batch.status == 'completed' %}
+                    ✅ Ready for market
+                    {% elif batch.status == 'quality_testing' %}
+                    🧪 Quality testing in progress
+                    {% elif batch.status == 'processing' %}
+                    ⚙️ Processing in progress
+                    {% else %}
+                    ❌ Processing failed
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Collection Events Map -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-geo-alt"></i>
+                    Collection Locations
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="batchMap" class="map-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Collection Events -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-leaf"></i>
+                    Source Collections ({{ collection_events.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if collection_events %}
+                <div class="row">
+                    {% for event in collection_events %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="bi bi-leaf text-success"></i>
+                                    {{ event.species.get_name_display }}
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Collector:</strong> {{ event.collector.name }}<br>
+                                    <strong>Location:</strong> {{ event.collector.village }}, {{ event.collector.state }}<br>
+                                    <strong>Harvest Date:</strong> {{ event.harvest_date|date:"M d, Y" }}<br>
+                                    <strong>Quantity:</strong> {{ event.quantity_kg }} kg<br>
+                                    <strong>Quality Grade:</strong> 
+                                    <span class="badge bg-{% if event.quality_grade == 'A' %}success{% elif event.quality_grade == 'B' %}warning{% else %}secondary{% endif %}">
+                                        Grade {{ event.quality_grade }}
+                                    </span>
+                                </p>
+                                {% if event.organic_certified %}
+                                <span class="badge bg-success me-1"><i class="bi bi-award"></i> Organic</span>
+                                {% endif %}
+                                {% if event.fair_trade_certified %}
+                                <span class="badge bg-info"><i class="bi bi-handshake"></i> Fair Trade</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No collection events recorded for this batch.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Timeline -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    Processing Timeline
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if processing_steps %}
+                {% for step in processing_steps %}
+                <div class="timeline-item">
+                    <h6>
+                        <i class="bi bi-gear text-warning"></i>
+                        {{ step.get_step_type_display }}
+                    </h6>
+                    <p class="mb-1">
+                        <strong>Operator:</strong> {{ step.operator_name }}<br>
+                        <strong>Date:</strong> {{ step.timestamp|date:"M d, Y H:i" }}
+                        {% if step.temperature %}
+                        <br><strong>Temperature:</strong> {{ step.temperature }}°C
+                        {% endif %}
+                        {% if step.humidity %}
+                        <br><strong>Humidity:</strong> {{ step.humidity }}%
+                        {% endif %}
+                    </p>
+                    {% if step.notes %}
+                    <p class="small text-muted">{{ step.notes }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No processing steps recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-flask"></i>
+                    Quality Test Results
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if quality_tests %}
+                {% for test in quality_tests %}
+                <div class="card border-{% if test.test_status == 'passed' %}success{% elif test.test_status == 'failed' %}danger{% else %}warning{% endif %} mb-3">
+                    <div class="card-header bg-{% if test.test_status == 'passed' %}success{% elif test.test_status == 'failed' %}danger{% else %}warning{% endif %} text-white">
+                        <h6 class="mb-0">
+                            {{ test.lab_name }}
+                            <span class="badge bg-white text-dark float-end">
+                                {{ test.get_test_status_display }}
+                            </span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="small mb-1"><strong>Test Date:</strong> {{ test.test_date|date:"M d, Y" }}</p>
+                                <p class="small mb-1"><strong>Certificate:</strong> {{ test.certificate_number }}</p>
+                                <p class="small mb-1"><strong>Moisture:</strong> {{ test.moisture_content }}%</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="small mb-1"><strong>Pesticide:</strong> {{ test.get_pesticide_residue_display }}</p>
+                                <p class="small mb-1"><strong>Heavy Metals:</strong> {{ test.get_heavy_metals_display }}</p>
+                                <p class="small mb-1"><strong>DNA Verified:</strong> 
+                                    {% if test.dna_verification %}
+                                    <i class="bi bi-check-circle text-success"></i> Yes
+                                    {% else %}
+                                    <i class="bi bi-x-circle text-danger"></i> No
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No quality tests completed yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sustainability Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-globe"></i>
+                    Sustainability & Compliance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="card border-success bg-light h-100">
+                            <div class="card-body">
+                                <i class="bi bi-award display-6 text-success"></i>
+                                <h6 class="mt-2">Organic Certified</h6>
+                                <p class="small text-muted">Verified organic sources</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 text-center">
+                        <div class="card border-info bg-light h-100">
+                            <div class="card-body">
+                                <i class="bi bi-handshake display-6 text-info"></i>
+                                <h6 class="mt-2">Fair Trade</h6>
+                                <p class="small text-muted">Fair compensation</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 text-center">
+                        <div class="card border-primary bg-light h-100">
+                            <div class="card-body">
+                                <i class="bi bi-shield-check display-6 text-primary"></i>
+                                <h6 class="mt-2">Quality Assured</h6>
+                                <p class="small text-muted">Lab tested & certified</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 text-center">
+                        <div class="card border-warning bg-light h-100">
+                            <div class="card-body">
+                                <i class="bi bi-leaf display-6 text-warning"></i>
+                                <h6 class="mt-2">Sustainably Sourced</h6>
+                                <p class="small text-muted">Eco-friendly practices</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const map = L.map('batchMap').setView([26.8467, 80.9462], 6);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    fetch(`/api/batch-data/{{ batch.batch_id }}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.collection_events && data.collection_events.length > 0) {
+                const markers = [];
+                
+                data.collection_events.forEach(event => {
+                    const marker = L.marker([event.lat, event.lng]).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <div class="p-3">
+                            <h6><i class="bi bi-leaf text-success"></i> ${event.species}</h6>
+                            <p class="mb-1"><strong>Collector:</strong> ${event.collector}</p>
+                            <p class="mb-1"><strong>Harvest Date:</strong> ${event.harvest_date}</p>
+                            <p class="mb-1"><strong>Quantity:</strong> ${event.quantity}kg</p>
+                            <p class="mb-0"><strong>Grade:</strong> ${event.grade}</p>
+                        </div>
+                    `);
+                    
+                    markers.push(marker);
+                });
+                
+                if (markers.length > 0) {
+                    const group = new L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+            }
+        });
+});
+</script>
+{% endblock %}

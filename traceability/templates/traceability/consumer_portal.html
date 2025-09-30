@@ -1,0 +1,119 @@
+{% extends 'traceability/base.html' %}
+
+{% block title %}Consumer Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="text-center mb-5">
+            <div class="display-1 text-success mb-3">
+                <i class="bi bi-qr-code-scan"></i>
+            </div>
+            <h1 class="display-4 mb-3">Consumer Portal</h1>
+            <p class="lead text-muted">
+                Scan the QR code on your ayurvedic product to trace its complete journey 
+                from farm to your hands
+            </p>
+        </div>
+        
+        <div class="card border-0 shadow-lg">
+            <div class="card-body p-5">
+                <h4 class="card-title text-center mb-4">
+                    <i class="bi bi-search text-success"></i>
+                    Track Your Product
+                </h4>
+                
+                <form id="trackingForm" class="needs-validation" novalidate>
+                    <div class="input-group input-group-lg mb-4">
+                        <span class="input-group-text bg-success text-white">
+                            <i class="bi bi-qr-code"></i>
+                        </span>
+                        <input type="text" class="form-control" id="batchId" placeholder="Enter batch ID or scan QR code" required>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-search"></i> Track
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="fillDemo('ASH-2024-001')">
+                            <i class="bi bi-clipboard"></i><br>
+                            Try Demo:<br>
+                            <small>ASH-2024-001</small>
+                        </button>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="fillDemo('TUL-2024-002')">
+                            <i class="bi bi-clipboard"></i><br>
+                            Try Demo:<br>
+                            <small>TUL-2024-002</small>
+                        </button>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="fillDemo('BRA-2024-003')">
+                            <i class="bi bi-clipboard"></i><br>
+                            Try Demo:<br>
+                            <small>BRA-2024-003</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-4 text-center">
+                <div class="card border-0 card-hover h-100">
+                    <div class="card-body">
+                        <div class="herb-icon">
+                            <i class="bi bi-shield-check text-success"></i>
+                        </div>
+                        <h5>Authenticity Verified</h5>
+                        <p class="text-muted">Each product is DNA tested and certified for species authenticity</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 text-center">
+                <div class="card border-0 card-hover h-100">
+                    <div class="card-body">
+                        <div class="herb-icon">
+                            <i class="bi bi-geo-alt text-primary"></i>
+                        </div>
+                        <h5>Complete Traceability</h5>
+                        <p class="text-muted">Track your product back to the exact location where it was harvested</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 text-center">
+                <div class="card border-0 card-hover h-100">
+                    <div class="card-body">
+                        <div class="herb-icon">
+                            <i class="bi bi-award text-warning"></i>
+                        </div>
+                        <h5>Quality Assured</h5>
+                        <p class="text-muted">All products undergo rigorous quality testing by certified laboratories</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('trackingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const batchId = document.getElementById('batchId').value.trim();
+    if (batchId) {
+        window.location.href = `/batch/${batchId}/`;
+    }
+});
+
+function fillDemo(batchId) {
+    document.getElementById('batchId').value = batchId;
+}
+</script>
+{% endblock %}

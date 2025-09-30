@@ -1,0 +1,288 @@
+{% extends 'traceability/base.html' %}
+{% load static %}
+
+{% block title %}Lab Testing Form - Ayurvedic Herb Traceability{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-flask"></i>
+                    Record Quality Test
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="batch_id" class="form-label">Batch ID *</label>
+                            <select class="form-select" id="batch_id" name="batch_id" required>
+                                <option value="">Select batch...</option>
+                                {% for batch in batches %}
+                                <option value="{{ batch.batch_id }}">{{ batch.batch_id }} - {{ batch.processing_facility }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Please select a batch.</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="certificate_number" class="form-label">Certificate Number *</label>
+                            <input type="text" class="form-control" id="certificate_number" 
+                                   name="certificate_number" required>
+                            <div class="invalid-feedback">Please provide certificate number.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="lab_name" class="form-label">Laboratory Name *</label>
+                            <input type="text" class="form-control" id="lab_name" name="lab_name" required>
+                            <div class="invalid-feedback">Please provide lab name.</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="lab_license" class="form-label">Lab License Number *</label>
+                            <input type="text" class="form-control" id="lab_license" name="lab_license" required>
+                            <div class="invalid-feedback">Please provide lab license.</div>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mt-4 mb-3">
+                        <i class="bi bi-clipboard-data text-info"></i>
+                        Test Results
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="moisture_content" class="form-label">Moisture Content (%) *</label>
+                            <input type="number" step="0.1" class="form-control" id="moisture_content" 
+                                   name="moisture_content" min="0" max="100" required>
+                            <div class="invalid-feedback">Please provide moisture content (0-100%).</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="microbial_count" class="form-label">Microbial Count (CFU/g) *</label>
+                            <input type="number" class="form-control" id="microbial_count" 
+                                   name="microbial_count" min="0" required>
+                            <div class="invalid-feedback">Please provide microbial count.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="pesticide_residue" class="form-label">Pesticide Residue *</label>
+                            <select class="form-select" id="pesticide_residue" name="pesticide_residue" required>
+                                <option value="">Select result...</option>
+                                <option value="none">None Detected</option>
+                                <option value="low">Low Levels</option>
+                                <option value="high">High Levels</option>
+                            </select>
+                            <div class="invalid-feedback">Please select pesticide test result.</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="heavy_metals" class="form-label">Heavy Metals *</label>
+                            <select class="form-select" id="heavy_metals" name="heavy_metals" required>
+                                <option value="">Select result...</option>
+                                <option value="pass">Within Limits</option>
+                                <option value="fail">Exceeds Limits</option>
+                            </select>
+                            <div class="invalid-feedback">Please select heavy metals test result.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="dna_verification" 
+                                       name="dna_verification" checked>
+                                <label class="form-check-label" for="dna_verification">
+                                    <i class="bi bi-check-square text-success"></i> DNA Species Verification Passed
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="test_status" class="form-label">Overall Test Status *</label>
+                            <select class="form-select" id="test_status" name="test_status" required>
+                                <option value="">Select status...</option>
+                                <option value="passed">Passed</option>
+                                <option value="failed">Failed</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                            <div class="invalid-feedback">Please select test status.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Additional Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                  placeholder="Any additional observations or comments..."></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-info btn-lg">
+                            <i class="bi bi-check-circle"></i> Submit Test Results
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-clipboard-check text-info"></i>
+                    Quality Standards
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="accordion accordion-flush" id="standardsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#moisture-standards">
+                                Moisture Content
+                            </button>
+                        </h2>
+                        <div id="moisture-standards" class="accordion-collapse collapse" 
+                             data-bs-parent="#standardsAccordion">
+                            <div class="accordion-body small">
+                                <ul class="mb-0">
+                                    <li><strong>Dried herbs:</strong> < 12%</li>
+                                    <li><strong>Powdered:</strong> < 8%</li>
+                                    <li><strong>Fresh herbs:</strong> 70-90%</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#microbial-standards">
+                                Microbial Limits
+                            </button>
+                        </h2>
+                        <div id="microbial-standards" class="accordion-collapse collapse" 
+                             data-bs-parent="#standardsAccordion">
+                            <div class="accordion-body small">
+                                <ul class="mb-0">
+                                    <li><strong>Total aerobic:</strong> < 10⁵ CFU/g</li>
+                                    <li><strong>Yeast & mould:</strong> < 10³ CFU/g</li>
+                                    <li><strong>E. coli:</strong> < 10 CFU/g</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-clock text-warning"></i>
+                    Test Progress
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-2" style="height: 20px;">
+                    <div class="progress-bar progress-animated" role="progressbar" style="width: 0%" 
+                         id="testProgress">0%</div>
+                </div>
+                <small class="text-muted">Complete all required fields</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation and progress tracking
+(function() {
+    'use strict';
+    
+    const form = document.querySelector('.needs-validation');
+    const progressBar = document.getElementById('testProgress');
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    function updateProgress() {
+        let completed = 0;
+        requiredFields.forEach(field => {
+            if (field.value.trim() !== '') {
+                completed++;
+            }
+        });
+        
+        const percentage = (completed / requiredFields.length) * 100;
+        progressBar.style.width = percentage + '%';
+        progressBar.textContent = Math.round(percentage) + '%';
+        
+        if (percentage === 100) {
+            progressBar.classList.remove('bg-warning');
+            progressBar.classList.add('bg-success');
+        } else {
+            progressBar.classList.remove('bg-success');
+            progressBar.classList.add('bg-warning');
+        }
+    }
+    
+    // Update progress on input
+    requiredFields.forEach(field => {
+        field.addEventListener('input', updateProgress);
+        field.addEventListener('change', updateProgress);
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+    
+    // Initial progress update
+    updateProgress();
+})();
+
+// Auto-generate certificate number
+document.getElementById('batch_id').addEventListener('change', function() {
+    const batchId = this.value;
+    if (batchId) {
+        const certNumber = 'CERT-' + batchId + '-' + Date.now().toString().slice(-6);
+        document.getElementById('certificate_number').value = certNumber;
+    }
+});
+
+// Quality indicators
+document.getElementById('moisture_content').addEventListener('input', function() {
+    const value = parseFloat(this.value);
+    const feedback = this.parentNode.querySelector('.form-text') || document.createElement('div');
+    feedback.className = 'form-text';
+    
+    if (value > 12) {
+        feedback.textContent = '⚠️ High moisture content - may affect storage';
+        feedback.className += ' text-warning';
+    } else if (value < 8) {
+        feedback.textContent = '✅ Optimal moisture content';
+        feedback.className += ' text-success';
+    } else {
+        feedback.textContent = '✅ Acceptable moisture content';
+        feedback.className += ' text-info';
+    }
+    
+    if (!this.parentNode.querySelector('.form-text')) {
+        this.parentNode.appendChild(feedback);
+    }
+});
+</script>
+{% endblock %}
